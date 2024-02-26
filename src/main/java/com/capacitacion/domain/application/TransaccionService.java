@@ -1,9 +1,8 @@
-package com.capacitacion.application;
+package com.capacitacion.domain.application;
 
 import com.capacitacion.domain.model.Transaccion;
-import java.util.List;
 
 public interface TransaccionService {
     public Transaccion realizarTransaccion(Transaccion transaccion);
-
+    public void eliminarTodo();
 }

@@ -1,17 +1,14 @@
 package com.capacitacion.domain.model;
 
 import jakarta.annotation.Nullable;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 
-@Entity
+@Document(collection = "personas")
 public class Persona {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String nombre;
     private int edad;
@@ -19,7 +16,7 @@ public class Persona {
     private int creditos = 100;
 
 
-    public Persona(@Nullable Long id, @Nullable String nombre, int edad, String dni) {
+    public Persona(@Nullable String id, @Nullable String nombre, int edad, String dni) {
         this.id = id;
         this.nombre = nombre;
         this.edad = edad;
@@ -28,11 +25,11 @@ public class Persona {
 
     public Persona() {}
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -70,10 +67,12 @@ public class Persona {
     }
 
     public void restarCreditoPorTransaccion(int monto) {
-        this.creditos -= monto;
+        this.setCreditos(this.creditos - monto);
+        System.out.println("Credito disponible de " +this.nombre + " es: " + this.creditos);
     }
 
     public void aumentarCreditoPorTransaccion(int monto) {
-        this.creditos += monto;
+        this.setCreditos(this.creditos + monto);
+        System.out.println("Credito disponible de " +this.nombre + " es: " + this.creditos);
     }
 }

@@ -4,7 +4,7 @@ import com.capacitacion.domain.model.exception.DniNoValidoException;
 import com.capacitacion.domain.model.exception.NombreNoValidoException;
 import com.capacitacion.domain.model.exception.PersonaNoExisteException;
 import com.capacitacion.domain.model.exception.VidaErroneaException;
-import com.capacitacion.application.PersonaService;
+import com.capacitacion.domain.application.PersonaService;
 import com.capacitacion.infraestructura.api.dto.PersonaDTO;
 import com.capacitacion.domain.model.Persona;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +31,12 @@ public class PersonaController {
         return ResponseEntity.ok(personas);
     }
 
+    @DeleteMapping
+    public ResponseEntity<?> eliminarTodo() {
+        personaService.eliminarTodo();
+        return ResponseEntity.ok().body("Las personas fueron eliminadas exitosamente");
+    }
+
     @PostMapping
     public ResponseEntity<?> agregarPersona(@RequestBody PersonaDTO persona) {
         try {
@@ -54,9 +60,8 @@ public class PersonaController {
     }
 
     @GetMapping(value ="/{id}", produces = "application/json")
-    public ResponseEntity<?> obtenerPersonaPorId(@PathVariable Long id) {
+    public ResponseEntity<?> obtenerPersonaPorId(@PathVariable String id) {
         try {
-            //PersonaDTO.desdeModelo(personaService.recuperar(id))
             Persona persona = personaService.recuperar(id);
             return ResponseEntity.ok().body(persona);
         } catch (PersonaNoExisteException e) {
@@ -69,7 +74,7 @@ public class PersonaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> actualizarPersona(@PathVariable Long id, @RequestBody PersonaDTO persona) {
+    public ResponseEntity<?> actualizarPersona(@PathVariable String id, @RequestBody PersonaDTO persona) {
         try {
             Persona personaActualizada = personaService.actualizar(id, persona.aModelo());
             logger.info("Persona actualizada con ID: {}", id);
@@ -90,7 +95,7 @@ public class PersonaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminarPersona(@PathVariable Long id) {
+    public ResponseEntity<?> eliminarPersona(@PathVariable String id) {
         try {
             personaService.eliminar(id);
             logger.info("Persona eliminada con ID: {}", id);

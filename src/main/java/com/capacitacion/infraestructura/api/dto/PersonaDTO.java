@@ -3,13 +3,13 @@ package com.capacitacion.infraestructura.api.dto;
 import com.capacitacion.domain.model.Persona;
 
 public class PersonaDTO {
-    private Long id;
+    private String id;
     private String nombre;
     private int edad;
     private String dni;
     private int creditos;
 
-    public PersonaDTO(Long id, String nombre, int edad, String dni, int creditos) {
+    public PersonaDTO(String id, String nombre, int edad, String dni, int creditos) {
         this.id = id;
         this.nombre = nombre;
         this.edad = edad;

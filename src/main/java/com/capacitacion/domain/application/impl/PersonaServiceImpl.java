@@ -1,11 +1,9 @@
-package com.capacitacion.application.impl;
+package com.capacitacion.domain.application.impl;
 
-import com.capacitacion.domain.model.PersonaMongo;
 import com.capacitacion.domain.model.exception.DniNoValidoException;
 import com.capacitacion.domain.model.exception.PersonaNoExisteException;
 import com.capacitacion.domain.repository.PersonaRepository;
-import com.capacitacion.application.PersonaMongoService;
-import com.capacitacion.application.PersonaService;
+import com.capacitacion.domain.application.PersonaService;
 import com.capacitacion.domain.model.Persona;
 import com.capacitacion.domain.model.exception.NombreNoValidoException;
 import com.capacitacion.domain.model.exception.VidaErroneaException;
@@ -19,20 +17,15 @@ public class PersonaServiceImpl implements PersonaService {
 
     @Autowired
     private final PersonaRepository personaRepository;
-    @Autowired
-    private final PersonaMongoService personaMongoService;
 
-    public PersonaServiceImpl(PersonaRepository personaRepository, PersonaMongoService personaMongoService) {
+    public PersonaServiceImpl(PersonaRepository personaRepository) {
         this.personaRepository = personaRepository;
-        this.personaMongoService = personaMongoService;
     }
 
     @Override
     public Persona crear(Persona persona) {
         validar(persona);
         Persona personaNueva = personaRepository.save(persona);
-        PersonaMongo personaMongo = new PersonaMongo(personaNueva.getId(), personaNueva.getNombre(), personaNueva.getEdad(), personaNueva.getDni());
-        personaMongoService.crear(personaMongo);
         return personaNueva;
     }
 
@@ -64,15 +57,16 @@ public class PersonaServiceImpl implements PersonaService {
     }
 
     @Override
-    public Persona actualizar(Long idPersona, Persona personaActualizada) {
+    public Persona actualizar(String idPersona, Persona personaActualizada) {
             Persona persona = this.recuperar(idPersona);
             persona.setEdad(personaActualizada.getEdad());
             persona.setNombre(personaActualizada.getNombre());
-            return this.crear(persona);
+            persona.setCreditos(personaActualizada.getCreditos());
+            return personaRepository.save(persona);
     }
 
     @Override
-    public Persona recuperar(Long idPersona) {
+    public Persona recuperar(String idPersona) {
         Persona persona = personaRepository.findPersonaById(idPersona);
         if(persona == null) {
             throw new PersonaNoExisteException();
@@ -90,26 +84,26 @@ public class PersonaServiceImpl implements PersonaService {
     }
 
     @Override
-    public void eliminar(Long idPersona) {
+    public void eliminar(String idPersona) {
         Persona persona = this.recuperar(idPersona);
         personaRepository.delete(persona);
-        personaMongoService.eliminar(persona.getId());
     }
 
     @Override
     public List<Persona> recuperarTodos() {
-        return (List<Persona>) personaRepository.findAll();
+        return personaRepository.findAll();
     }
 
     @Override
     public void realizarTransaccion(String dni1, String dni2, int monto) {
         Persona personaOrigen = personaRepository.findByDni(dni1);
         Persona personaDestino = personaRepository.findByDni(dni2);
-        PersonaMongo personaMongoOrigen = personaMongoService.recuperar(personaOrigen.getId());
-        PersonaMongo personaMongoDestino = personaMongoService.recuperar(personaDestino.getId());
         personaOrigen.restarCreditoPorTransaccion(monto);
         personaDestino.aumentarCreditoPorTransaccion(monto);
-        personaMongoService.actualizar(personaMongoOrigen);
-        personaMongoService.actualizar(personaMongoDestino);
+    }
+
+    @Override
+    public void eliminarTodo() {
+        personaRepository.deleteAll();
     }
 }

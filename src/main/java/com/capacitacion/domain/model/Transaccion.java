@@ -1,20 +1,17 @@
 package com.capacitacion.domain.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+@Document(collection = "transacciones")
 public class Transaccion {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
     private String dniOrigen;
     private String dniDestino;
     private int monto;
 
-    public Transaccion(Long id, String dniOrigen, String dniDestino, int monto) {
+    public Transaccion(String id, String dniOrigen, String dniDestino, int monto) {
         this.id = id;
         this.dniOrigen = dniOrigen;
         this.dniDestino = dniDestino;
@@ -23,11 +20,11 @@ public class Transaccion {
 
     public Transaccion() {}
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

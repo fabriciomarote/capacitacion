@@ -3,12 +3,12 @@ package com.capacitacion.infraestructura.api.dto;
 import com.capacitacion.domain.model.Transaccion;
 
 public class TransaccionDTO {
-    private Long id;
+    private String id;
     private String dniOrigen;
     private String dniDestino;
     private int monto;
 
-    public TransaccionDTO(Long id, String dniOrigen, String dniDestino, int monto) {
+    public TransaccionDTO(String id, String dniOrigen, String dniDestino, int monto) {
         this.id = id;
         this.dniOrigen = dniOrigen;
         this.dniDestino = dniDestino;

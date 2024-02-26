@@ -1,7 +1,7 @@
 package com.capacitacion.infraestructura.api;
 
 import com.capacitacion.domain.model.Transaccion;
-import com.capacitacion.application.TransaccionService;
+import com.capacitacion.domain.application.TransaccionService;
 import com.capacitacion.domain.model.exception.*;
 import com.capacitacion.infraestructura.api.dto.TransaccionDTO;
 import org.slf4j.Logger;
@@ -45,5 +45,11 @@ public class TransaccionController {
             logger.error("Error al realizar la transaccion", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor");
         }
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> eliminarTodo() {
+        transaccionService.eliminarTodo();
+        return ResponseEntity.ok().body("Las transacciones fueron eliminadas exitosamente");
     }
 }

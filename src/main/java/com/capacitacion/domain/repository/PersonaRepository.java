@@ -1,10 +1,16 @@
 package com.capacitacion.domain.repository;
 
 import com.capacitacion.domain.model.Persona;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.stereotype.Repository;
 
-public interface PersonaRepository extends CrudRepository<Persona, Long> {
+@Repository
+public interface PersonaRepository extends MongoRepository<Persona, String> {
 
-    Persona findPersonaById(Long id);
+    @Query("{id: ?0}")
+    Persona findPersonaById(String id);
     Persona findByDni(String dni);
+
+
 }
