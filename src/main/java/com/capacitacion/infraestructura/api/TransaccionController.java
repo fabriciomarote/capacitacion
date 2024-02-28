@@ -26,20 +26,9 @@ public class TransaccionController {
             Transaccion transaccionNueva = transaccionService.realizarTransaccion(transaccion.aModelo());
             logger.info("Transaccion realizada con ID: {}", transaccionNueva.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(transaccionNueva);
-        } catch (DniNoValidoException e) {
-            logger.error("Error al realizar la transaccion con ID: {}", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (MontoNoValidoException e) {
-            logger.error("Error al realizar la transaccion con ID: {}", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (PersonaNoExisteException e) {
-            logger.error("Error al realizar la transaccion con ID: {}", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (DniRepetidoException e) {
-            logger.error("Error al realizar la transaccion con ID: {}", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (MontoInsuficienteException e) {
-            logger.error("Error al realizar la transaccion con ID: {}", e);
+        } catch (DniNoValidoException | MontoNoValidoException | PersonaNoExisteException |
+                 DniRepetidoException | MontoInsuficienteException e) {
+            logger.error("Error al realizar la transaccion con ID: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al realizar la transaccion", e);

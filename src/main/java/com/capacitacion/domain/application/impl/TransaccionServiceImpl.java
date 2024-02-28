@@ -1,11 +1,13 @@
 package com.capacitacion.domain.application.impl;
 import com.capacitacion.domain.model.Persona;
+import com.capacitacion.domain.model.TransaccionEvent;
 import com.capacitacion.domain.model.exception.*;
 import com.capacitacion.domain.repository.TransaccionRepository;
 import com.capacitacion.domain.model.Transaccion;
 import com.capacitacion.domain.application.PersonaService;
 import com.capacitacion.domain.application.TransaccionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -17,10 +19,14 @@ public class TransaccionServiceImpl implements TransaccionService {
     private final TransaccionRepository transaccionRepository;
     @Autowired
     private final PersonaService personaService;
+    @Autowired
+    private final KafkaTemplate<String, TransaccionEvent> kafkaTemplate;
 
-    public TransaccionServiceImpl(TransaccionRepository transaccionRepository, PersonaService personaService) {
+    @Autowired
+    public TransaccionServiceImpl(TransaccionRepository transaccionRepository, PersonaService personaService, KafkaTemplate<String, TransaccionEvent> kafkaTemplate) {
         this.transaccionRepository = transaccionRepository;
         this.personaService = personaService;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     @Override
@@ -29,6 +35,9 @@ public class TransaccionServiceImpl implements TransaccionService {
         validarTransaccion(transaccion);
         actualizarPartes(transaccion.getDniOrigen(), transaccion.getDniDestino(), transaccion.getMonto());
         Transaccion nuevaTransaccion = transaccionRepository.save(transaccion);
+
+        TransaccionEvent transaccionEvent = new TransaccionEvent(nuevaTransaccion.getId());
+        kafkaTemplate.send("transaccion-topic", transaccionEvent);
         return nuevaTransaccion;
     }
 
