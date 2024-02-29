@@ -7,33 +7,33 @@ import com.capacitacion.domain.model.exception.VidaErroneaException;
 import com.capacitacion.domain.application.PersonaService;
 import com.capacitacion.infraestructura.api.dto.PersonaDTO;
 import com.capacitacion.domain.model.Persona;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.List;
 
 
 @RestController
 @RequestMapping("/api/personas")
+@Slf4j
 public class PersonaController {
-
-    private static final Logger logger = LoggerFactory.getLogger(PersonaController.class);
 
     @Autowired
     private PersonaService personaService;
 
     @GetMapping
     public ResponseEntity<List<Persona>> obtenerTodasLasPersonas() {
-        List<Persona> personas = personaService.recuperarTodos();//.stream().map( { persona -> PersonaDTO.desdeModelo(persona)});
+        List<Persona> personas = personaService.recuperarTodos();
+        log.debug("Obteniendo todas las personas: {}", personas);
         return ResponseEntity.ok(personas);
     }
 
     @DeleteMapping
     public ResponseEntity<?> eliminarTodo() {
         personaService.eliminarTodo();
+        log.warn("¡Atención! Se eliminaron todas las personas.");
         return ResponseEntity.ok().body("Las personas fueron eliminadas exitosamente");
     }
 
@@ -41,21 +41,13 @@ public class PersonaController {
     public ResponseEntity<?> agregarPersona(@RequestBody PersonaDTO persona) {
         try {
             Persona personaCreada = personaService.crear(persona.aModelo());
-            logger.info("Persona creada con ID: {}", personaCreada.getId());
+            log.info("Persona creada con ID: {}", personaCreada.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(personaCreada);
-        } catch (NombreNoValidoException e) {
-            logger.error("Error al crear persona con ID: {}", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (VidaErroneaException e) {
-            logger.error("Error al crear persona con ID: {}", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (DniNoValidoException e) {
-            logger.error("Error al crear persona con ID: {}", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (NombreNoValidoException | VidaErroneaException | DniNoValidoException e) {
+            return handleBadRequest(e);
         }
         catch (Exception e) {
-            logger.error("Error al crear persona", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor");
+            return handleInternalServerError(e);
         }
     }
 
@@ -63,13 +55,12 @@ public class PersonaController {
     public ResponseEntity<?> obtenerPersonaPorId(@PathVariable String id) {
         try {
             Persona persona = personaService.recuperar(id);
+            log.debug("Obteniendo persona por ID {}: {}", id, persona);
             return ResponseEntity.ok().body(persona);
         } catch (PersonaNoExisteException e) {
-            logger.error("Error al obtener persona por ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return handleNotFound(e, id);
         } catch (Exception e) {
-            logger.error("Error interno del servidor al obtener persona por ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor");
+            return handleInternalServerError(e);
         }
     }
 
@@ -77,20 +68,14 @@ public class PersonaController {
     public ResponseEntity<?> actualizarPersona(@PathVariable String id, @RequestBody PersonaDTO persona) {
         try {
             Persona personaActualizada = personaService.actualizar(id, persona.aModelo());
-            logger.info("Persona actualizada con ID: {}", id);
+            log.info("Persona actualizada con ID: {}", id);
             return ResponseEntity.ok(personaActualizada);
         } catch (PersonaNoExisteException e) {
-            logger.error("Error al actualizar persona con ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (NombreNoValidoException e) {
-            logger.error("Error al actualizar persona con ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        } catch (VidaErroneaException e) {
-            logger.error("Error al actualizar persona con ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return handleNotFound(e, id);
+        } catch (NombreNoValidoException | VidaErroneaException  e) {
+            return handleBadRequest(e);
         } catch (Exception e) {
-            logger.error("Error al actualizar persona con ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor");
+            return handleInternalServerError(e);
         }
     }
 
@@ -98,14 +83,27 @@ public class PersonaController {
     public ResponseEntity<?> eliminarPersona(@PathVariable String id) {
         try {
             personaService.eliminar(id);
-            logger.info("Persona eliminada con ID: {}", id);
+            log.info("Persona eliminada con ID: {}", id);
             return ResponseEntity.ok().body("La persona fue eliminada exitosamente");
         } catch (PersonaNoExisteException e) {
-            logger.error("Error al eliminar persona con ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return handleNotFound(e, id);
         } catch (Exception e) {
-            logger.error("Error al eliminar persona con ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor");
+            return handleInternalServerError(e);
         }
+    }
+
+    private ResponseEntity<?> handleBadRequest(RuntimeException e) {
+        log.error("Error al procesar la solicitud", e);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    }
+
+    private ResponseEntity<?> handleNotFound(RuntimeException e, String id) {
+        log.warn("No se encontró información para ID: {}", id, e);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+
+    private ResponseEntity<?> handleInternalServerError(Exception e) {
+        log.error("Error interno del servidor al procesar solicitud", e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor");
     }
 }

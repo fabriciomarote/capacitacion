@@ -4,7 +4,6 @@ import jakarta.annotation.Nullable;
 import jakarta.persistence.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-
 @Document(collection = "personas")
 public class Persona {
     @Id
@@ -14,6 +13,7 @@ public class Persona {
     private int edad;
     private String dni;
     private int creditos = 100;
+    private String direccion;
 
 
     public Persona(@Nullable String id, @Nullable String nombre, int edad, String dni) {
@@ -66,13 +66,19 @@ public class Persona {
         this.creditos = nuevosCreditos;
     }
 
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public void setDireccion(String nuevaDireccion) {
+        this.direccion = nuevaDireccion;
+    }
+
     public void restarCreditoPorTransaccion(int monto) {
         this.setCreditos(this.creditos - monto);
-        System.out.println("Credito disponible de " +this.nombre + " es: " + this.creditos);
     }
 
     public void aumentarCreditoPorTransaccion(int monto) {
         this.setCreditos(this.creditos + monto);
-        System.out.println("Credito disponible de " +this.nombre + " es: " + this.creditos);
     }
 }
