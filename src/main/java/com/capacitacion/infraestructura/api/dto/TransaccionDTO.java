@@ -8,6 +8,14 @@ public class TransaccionDTO {
     private String dniDestino;
     private int monto;
 
+    /**
+     * Constructor de TransaccionDTO.
+     *
+     * @param id         Identificador único de la transacción.
+     * @param dniOrigen  DNI del remitente en la transacción.
+     * @param dniDestino DNI del destinatario en la transacción.
+     * @param monto      Monto de la transacción.
+     */
     public TransaccionDTO(String id, String dniOrigen, String dniDestino, int monto) {
         this.id = id;
         this.dniOrigen = dniOrigen;
@@ -15,6 +23,12 @@ public class TransaccionDTO {
         this.monto = monto;
     }
 
+    /**
+     * Método estático para crear un objeto TransaccionDTO a partir de un objeto Transaccion.
+     *
+     * @param transaccion Objeto Transaccion del cual se extraen los datos.
+     * @return Objeto TransaccionDTO creado a partir del modelo.
+     */
     public static TransaccionDTO desdeModelo(Transaccion transaccion) {
         return new TransaccionDTO(
                 transaccion.getId(),
@@ -24,6 +38,11 @@ public class TransaccionDTO {
         );
     }
 
+    /**
+     * Convierte el objeto TransaccionDTO a un objeto Transaccion.
+     *
+     * @return Objeto Transaccion creado a partir de los datos en el DTO.
+     */
     public Transaccion aModelo() {
         Transaccion transaccion = new Transaccion();
         transaccion.setId(this.id);

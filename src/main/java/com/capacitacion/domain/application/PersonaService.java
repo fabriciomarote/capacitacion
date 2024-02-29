@@ -10,8 +10,8 @@ public interface PersonaService {
     public Persona actualizar(String idPersona, Persona persona);
     public Persona recuperar(String idPersona);
     public Persona obtenerPorDni(String dniPersona);
+    public Persona obtenerPorNombre(String nombrePersona);
     public void eliminar(String idPersona);
     public List<Persona> recuperarTodos();
-    public void realizarTransaccion(String dni1, String dni2, int monto);
     public void eliminarTodo();
 }

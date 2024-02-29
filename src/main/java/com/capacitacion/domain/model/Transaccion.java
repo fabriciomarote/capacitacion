@@ -1,16 +1,28 @@
 package com.capacitacion.domain.model;
 
 import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+@Getter @Setter
 @Document(collection = "transacciones")
 public class Transaccion {
+
     @Id
     private String id;
     private String dniOrigen;
     private String dniDestino;
     private int monto;
 
+    /**
+     * Constructor de Transaccion.
+     *
+     * @param id         Identificador único de la transacción (puede ser nulo si se crea una nueva transacción).
+     * @param dniOrigen  Número de DNI del remitente.
+     * @param dniDestino Número de DNI del destinatario.
+     * @param monto      Monto de la transacción.
+     */
     public Transaccion(String id, String dniOrigen, String dniDestino, int monto) {
         this.id = id;
         this.dniOrigen = dniOrigen;
@@ -18,37 +30,9 @@ public class Transaccion {
         this.monto = monto;
     }
 
+    /**
+     * Constructor por defecto de Transaccion.
+     */
     public Transaccion() {}
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getDniOrigen() {
-        return dniOrigen;
-    }
-
-    public void setDniOrigen(String dniOrigen) {
-        this.dniOrigen = dniOrigen;
-    }
-
-    public String getDniDestino() {
-        return dniDestino;
-    }
-
-    public void setDniDestino(String dniDestino) {
-        this.dniDestino = dniDestino;
-    }
-
-    public int getMonto() {
-        return monto;
-    }
-
-    public void setMonto(int monto) {
-        this.monto = monto;
-    }
 }

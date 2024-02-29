@@ -11,6 +11,5 @@ public interface PersonaRepository extends MongoRepository<Persona, String> {
     @Query("{id: ?0}")
     Persona findPersonaById(String id);
     Persona findByDni(String dni);
-
-
+    Persona findByNombre(String nombre);
 }
