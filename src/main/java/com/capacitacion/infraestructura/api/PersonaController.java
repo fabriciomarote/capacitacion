@@ -4,13 +4,21 @@ import com.capacitacion.domain.model.exception.*;
 import com.capacitacion.domain.application.PersonaService;
 import com.capacitacion.infraestructura.api.dto.PersonaDTO;
 import com.capacitacion.domain.model.Persona;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+@Configuration
 @RestController
 @RequestMapping("/api/personas")
 @Slf4j
@@ -24,11 +32,25 @@ public class PersonaController {
      *
      * @return ResponseEntity con la lista de personas y el estado HTTP 200 (OK).
      */
+    @Operation(summary = "Obtiene todas las personas persistidas en la base de datos",
+            description = "Recupera la lista completa de personas almacenadas en la base de datos.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Obtiene una lista de personas",
+                    content = { @Content(mediaType = "application/json",
+                            array = @ArraySchema( schema = @Schema(implementation = Persona.class)))})})
     @GetMapping
     public ResponseEntity<List<Persona>> obtenerTodasLasPersonas() {
-        List<Persona> personas = personaService.recuperarTodos();
-        log.debug("Obteniendo todas las personas: {}", personas);
-        return ResponseEntity.ok(personas);
+        try {
+            List<Persona> personas = personaService.recuperarTodos();
+            log.debug("Obteniendo todas las personas: {}", personas);
+
+            if (personas.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(personas);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -36,11 +58,21 @@ public class PersonaController {
      *
      * @return ResponseEntity con el mensaje de éxito y el estado HTTP 200 (OK).
      */
+    @Operation(summary = "Borra a todas las personas persistidas de la base de datos",
+            description = "Elimina de manera permanente todas las personas almacenadas en la base de datos.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Las personas fueron eliminadas exitosamente",
+                    content = @Content)})
     @DeleteMapping
     public ResponseEntity<?> eliminarTodo() {
-        personaService.eliminarTodo();
-        log.warn("¡Atención! Se eliminaron todas las personas.");
-        return ResponseEntity.ok().body("Las personas fueron eliminadas exitosamente");
+        try {
+            personaService.eliminarTodo();
+            log.warn("¡Atención! Se eliminaron todas las personas.");
+            return ResponseEntity.ok().body("Las personas fueron eliminadas exitosamente");
+        } catch (Exception ex) {
+            log.error("Error al eliminar todas las personas.", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -51,16 +83,33 @@ public class PersonaController {
      *         En caso de errores de validación, retorna un ResponseEntity con el mensaje de error y el estado HTTP 400 (BAD REQUEST).
      *         En caso de otros errores, retorna un ResponseEntity con un mensaje de error genérico y el estado HTTP 500 (INTERNAL SERVER ERROR).
      */
+    @Operation(summary = "Agrega una nueva persona a la base de datos")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Agrega una nueva persona",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Persona.class))}),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "Recurso no encontrado",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor",
+                    content = @Content)
+    })
     @PostMapping
     public ResponseEntity<?> agregarPersona(@RequestBody PersonaDTO persona) {
         try {
             Persona personaCreada = personaService.crear(persona.aModelo());
             log.info("Persona creada con ID: {}", personaCreada.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(personaCreada);
-        } catch (NombreNoValidoException | VidaErroneaException | DniNoValidoException | DniAsignadoException e) {
-            return handleBadRequest(e);
-        }
-        catch (Exception e) {
+        } catch (NombreNoValidoException e) {
+            return handleBadRequest("Nombre no válido: " + e.getMessage());
+        } catch (VidaErroneaException e) {
+            return handleBadRequest("Vida erronea: " + e.getMessage());
+        } catch (DniNoValidoException e) {
+            return handleBadRequest("DNI no válido: " + e.getMessage());
+        } catch (DniAsignadoException e) {
+            return handleBadRequest("DNI ya asignado: " + e.getMessage());
+        } catch (Exception e) {
             return handleInternalServerError(e);
         }
     }
@@ -73,6 +122,17 @@ public class PersonaController {
      *         En caso de no encontrar la persona, retorna un ResponseEntity con un mensaje de error y el estado HTTP 404 (NOT FOUND).
      *         En caso de otros errores, retorna un ResponseEntity con un mensaje de error genérico y el estado HTTP 500 (INTERNAL SERVER ERROR).
      */
+    @Operation(summary = "Obtiene una persona de la base de datos")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Persona encontrada exitosamente",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Persona.class))}),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "Persona no encontrada",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor",
+                    content = @Content) })
     @GetMapping(value ="/{id}", produces = "application/json")
     public ResponseEntity<?> obtenerPersonaPorId(@PathVariable String id) {
         try {
@@ -96,6 +156,17 @@ public class PersonaController {
      *         En caso de errores de validación, retorna un ResponseEntity con el mensaje de error y el estado HTTP 400 (BAD REQUEST).
      *         En caso de otros errores, retorna un ResponseEntity con un mensaje de error genérico y el estado HTTP 500 (INTERNAL SERVER ERROR).
      */
+    @Operation(summary = "Actualiza una persona de la base de datos")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Actualiza una persona",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Persona.class))}),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta o datos no válidos",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "Persona no encontrada para el ID especificado",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor",
+                    content = @Content) })
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizarPersona(@PathVariable String id, @RequestBody PersonaDTO persona) {
         try {
@@ -104,8 +175,10 @@ public class PersonaController {
             return ResponseEntity.ok(personaActualizada);
         } catch (PersonaNoExisteException e) {
             return handleNotFound(e, id);
-        } catch (NombreNoValidoException | VidaErroneaException  e) {
-            return handleBadRequest(e);
+        } catch (NombreNoValidoException e) {
+            return handleBadRequest("Nombre no válido: " + e.getMessage());
+        } catch (VidaErroneaException e) {
+            return handleBadRequest("Vida erronea: " + e.getMessage());
         } catch (Exception e) {
             return handleInternalServerError(e);
         }
@@ -119,6 +192,14 @@ public class PersonaController {
      *         En caso de no encontrar la persona, retorna un ResponseEntity con un mensaje de error y el estado HTTP 404 (NOT FOUND).
      *         En caso de otros errores, retorna un ResponseEntity con un mensaje de error genérico y el estado HTTP 500 (INTERNAL SERVER ERROR).
      */
+    @Operation(summary = "Borra a la persona de la base de datos")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "La personas fuer eliminada exitosamente",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "No se encontró la persona para el ID especificado",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor",
+                    content = @Content)})
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminarPersona(@PathVariable String id) {
         try {
@@ -135,12 +216,13 @@ public class PersonaController {
     /**
      * Maneja los errores de solicitud incorrecta (HTTP 400 Bad Request).
      *
-     * @param e Excepción que indica el error de validación.
+     * @param errorMessage Mensaje de error detallado.
      * @return ResponseEntity con el mensaje de error y el estado HTTP 400 (Bad Request).
      */
-    private ResponseEntity<?> handleBadRequest(RuntimeException e) {
-        log.error("Error al procesar la solicitud", e);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    private ResponseEntity<?> handleBadRequest(String errorMessage) {
+        log.error("Error al procesar la solicitud: {}", errorMessage);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
     }
 
     /**
@@ -150,6 +232,7 @@ public class PersonaController {
      * @param id ID del recurso no encontrado.
      * @return ResponseEntity con el mensaje de error y el estado HTTP 404 (Not Found).
      */
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     private ResponseEntity<?> handleNotFound(RuntimeException e, String id) {
         log.warn("No se encontró información para ID: {}", id, e);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -161,6 +244,7 @@ public class PersonaController {
      * @param e Excepción que indica un error interno del servidor.
      * @return ResponseEntity con el mensaje de error y el estado HTTP 500 (Internal Server Error).
      */
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     private ResponseEntity<?> handleInternalServerError(Exception e) {
         log.error("Error interno del servidor al procesar solicitud", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor");

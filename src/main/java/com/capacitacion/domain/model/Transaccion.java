@@ -1,6 +1,9 @@
 package com.capacitacion.domain.model;
 
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -11,8 +14,14 @@ public class Transaccion {
 
     @Id
     private String id;
+    @NotBlank
+    @Size(max = 8)
     private String dniOrigen;
+    @NotBlank
+    @Size(max = 8)
     private String dniDestino;
+    @NotBlank
+    @DecimalMin(value = "1")
     private int monto;
 
     /**

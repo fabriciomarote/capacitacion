@@ -2,6 +2,10 @@ package com.capacitacion.domain.model;
 
 import jakarta.annotation.Nullable;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -12,10 +16,19 @@ public class Persona {
 
     @Id
     private String id;
+    @NotBlank
     private String nombre;
+    @NotBlank
+    @DecimalMin(value = "1")
+    @DecimalMax(value = "100")
     private int edad;
+    @NotBlank
+    @Size(max = 8)
     private String dni;
+    @NotBlank
+    @DecimalMin(value = "1")
     private int creditos = 100;
+    @NotBlank
     private String direccion;
 
     /**
@@ -26,7 +39,7 @@ public class Persona {
      * @param edad   Edad de la persona.
      * @param dni    Número de DNI de la persona.
      */
-    public Persona(@Nullable String id, @Nullable String nombre, int edad, String dni) {
+    public Persona(String id, String nombre, int edad, String dni) {
         this.id = id;
         this.nombre = nombre;
         this.edad = edad;
